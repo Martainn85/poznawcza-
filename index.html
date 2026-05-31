@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychologia poznawcza, baza pytań i test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#15233f;
+  --ink-soft:#2c3e5f;
+  --paper:#f7f6f2;
+  --card:#ffffff;
+  --line:#e3e0d8;
+  --teal:#1f7a6e;
+  --teal-soft:#e4f1ee;
+  --amber:#c8862a;
+  --amber-soft:#f6ecd8;
+  --good:#1f7a3f;
+  --good-soft:#e3f2e6;
+  --bad:#b23a3a;
+  --bad-soft:#f7e6e4;
+  --muted:#6b6f78;
+  --shadow:0 1px 2px rgba(21,35,63,.06),0 8px 28px rgba(21,35,63,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"IBM Plex Sans",Georgia,serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 1px 1px,rgba(21,35,63,.04) 1px,transparent 0);
+  background-size:22px 22px;
+}
+.wrap{max-width:840px;margin:0 auto;padding:0 20px}
+
+/* header */
+header{padding:38px 0 26px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);font-weight:600;margin-bottom:8px}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:34px;line-height:1.1;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px;margin-top:8px;max-width:60ch}
+
+/* tabs */
+.tabs{display:flex;gap:6px;margin:24px 0 4px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:5px;width:fit-content;box-shadow:var(--shadow)}
+.tab{border:0;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);padding:9px 18px;border-radius:8px;cursor:pointer;transition:.18s}
+.tab.active{background:var(--ink);color:#fff}
+.tab:not(.active):hover{color:var(--ink)}
+
+.view{display:none;padding-bottom:80px}
+.view.active{display:block}
+
+/* setup panel */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--shadow);margin-top:20px}
+.panel h2{font-family:"Fraunces",Georgia,serif;font-size:21px;font-weight:600;margin-bottom:4px}
+.panel .hint{color:var(--muted);font-size:14px;margin-bottom:18px}
+.field-label{font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);margin:18px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:500;cursor:pointer;transition:.15s;user-select:none}
+.chip:hover{border-color:var(--teal)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.chip .cnt{font-size:11px;opacity:.7}
+.len-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.len-row .chip{min-width:54px;justify-content:center}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px;color:var(--ink-soft)}
+.switch{position:relative;width:42px;height:24px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.2s;cursor:pointer}
+.slider::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked + .slider{background:var(--teal)}
+.switch input:checked + .slider::before{transform:translateX(18px)}
+
+.btn{font-family:inherit;border:0;border-radius:10px;font-size:15px;font-weight:600;padding:13px 26px;cursor:pointer;transition:.16s}
+.btn-primary{background:var(--ink);color:#fff;margin-top:26px}
+.btn-primary:hover{background:#0e1a30}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--ink)}
+
+.best{margin-top:18px;font-size:13.5px;color:var(--muted)}
+.best b{color:var(--teal)}
+
+/* quiz */
+.qbar{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.progress{flex:1;height:7px;background:var(--line);border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--teal);width:0;transition:width .35s ease}
+.qcount{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.score-live{font-size:13px;font-weight:600;color:var(--teal);white-space:nowrap}
+
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow)}
+.qtopic{display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;background:var(--teal-soft);padding:4px 10px;border-radius:6px;margin-bottom:14px}
+.qtext{font-family:"Fraunces",Georgia,serif;font-size:21px;line-height:1.35;font-weight:500;margin-bottom:22px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:13px;align-items:flex-start;text-align:left;width:100%;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:14px 16px;font-family:inherit;font-size:15.5px;color:var(--ink);cursor:pointer;transition:.14s}
+.opt:hover:not(:disabled){border-color:var(--teal);background:#fff}
+.opt:disabled{cursor:default}
+.opt .key{flex:none;width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:1px}
+.opt.correct{border-color:var(--good);background:var(--good-soft)}
+.opt.correct .key{background:var(--good)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .key{background:var(--bad)}
+.opt.dim{opacity:.55}
+
+.explain{margin-top:18px;border-left:3px solid var(--amber);background:var(--amber-soft);border-radius:0 10px 10px 0;padding:14px 18px;font-size:14.5px;line-height:1.55;display:none}
+.explain.show{display:block;animation:fade .3s ease}
+.explain b{color:var(--amber);font-family:"Fraunces",serif}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.nav-row{display:flex;justify-content:flex-end;margin-top:22px}
+
+/* results */
+.result{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px;box-shadow:var(--shadow);text-align:center}
+.result .ring{width:130px;height:130px;margin:6px auto 18px;position:relative}
+.result .ring svg{transform:rotate(-90deg)}
+.result .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:"Fraunces",serif;font-size:30px;font-weight:600}
+.result h2{font-family:"Fraunces",serif;font-size:24px;margin-bottom:6px}
+.result .verdict{color:var(--muted);margin-bottom:22px}
+.result .nums{display:flex;justify-content:center;gap:30px;margin-bottom:26px}
+.result .nums div{font-size:13px;color:var(--muted)}
+.result .nums b{display:block;font-family:"Fraunces",serif;font-size:24px;color:var(--ink)}
+.result .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+.review{margin-top:34px;text-align:left}
+.review h3{font-family:"Fraunces",serif;font-size:18px;margin-bottom:14px}
+.rev-item{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px;background:var(--card);font-size:14.5px}
+.rev-item .rq{font-weight:600;margin-bottom:8px}
+.rev-item .ra{display:block;margin:3px 0}
+.rev-item .ra.ok{color:var(--good)}
+.rev-item .ra.no{color:var(--bad)}
+.rev-item .rex{color:var(--muted);margin-top:8px;font-size:13.5px;border-top:1px dashed var(--line);padding-top:8px}
+
+/* bank */
+.bank-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 22px}
+.search{flex:1;min-width:200px}
+.search input{width:100%;font-family:inherit;font-size:14.5px;padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.search input:focus{outline:none;border-color:var(--teal)}
+.bank-count{font-size:13px;color:var(--muted)}
+.bcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:12px}
+.bcard .qtopic{margin-bottom:10px}
+.bcard .bq{font-family:"Fraunces",serif;font-size:17.5px;font-weight:500;line-height:1.35;margin-bottom:12px}
+.bopt{font-size:14.5px;padding:6px 0;border-bottom:1px solid var(--paper);display:flex;gap:10px}
+.bopt .bk{font-weight:700;color:var(--muted);flex:none}
+.bopt.ans{color:var(--good);font-weight:600}
+.bopt.ans .bk{color:var(--good)}
+.bex{margin-top:12px;font-size:14px;color:var(--ink-soft);background:var(--amber-soft);border-left:3px solid var(--amber);padding:11px 15px;border-radius:0 8px 8px 0}
+.bex b{color:var(--amber);font-family:"Fraunces",serif}
+
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px;text-align:center}
+.empty{text-align:center;color:var(--muted);padding:50px 0;font-size:15px}
+
+@media(max-width:560px){
+  h1{font-size:27px}
+  .qtext{font-size:18.5px}
+  .panel,.qcard,.result{padding:20px}
+  .result .nums{gap:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">dr Magdalena Berkowska, Uniwersytet VIZJA</div>
+    <h1>Psychologia poznawcza</h1>
+    <p class="sub">Baza pytań i test jednokrotnego wyboru. Materiał oparty na pięciu wykładach: wprowadzenie i reprezentacje, widzenie i spostrzeganie, uwaga, pamięć, myślenie.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-view="test">Test ABCD</button>
+    <button class="tab" data-view="bank">Baza pytań</button>
+  </div>
+
+  <!-- TEST SETUP -->
+  <section id="view-test" class="view active">
+    <div id="setup" class="panel">
+      <h2>Ustawienia testu</h2>
+      <p class="hint">Format jak na egzaminie: jedna odpowiedź poprawna z czterech. Po każdej odpowiedzi zobaczysz wyjaśnienie.</p>
+
+      <div class="field-label">Zakres materiału</div>
+      <div id="topicChips" class="chips"></div>
+
+      <div class="field-label">Liczba pytań</div>
+      <div id="lenChips" class="len-row"></div>
+
+      <div class="toggle-row">
+        <label class="switch"><input type="checkbox" id="instantFb" checked><span class="slider"></span></label>
+        <span>Pokazuj wyjaśnienie od razu po odpowiedzi</span>
+      </div>
+      <div class="toggle-row">
+        <label class="switch"><input type="checkbox" id="shuffleOpts" checked><span class="slider"></span></label>
+        <span>Mieszaj kolejność odpowiedzi</span>
+      </div>
+
+      <button id="startBtn" class="btn btn-primary">Rozpocznij test</button>
+      <div id="bestLine" class="best"></div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz" style="display:none">
+      <div class="qbar">
+        <div class="progress"><span id="progFill"></span></div>
+        <div class="qcount" id="qCount"></div>
+        <div class="score-live" id="scoreLive"></div>
+      </div>
+      <div class="qcard">
+        <span class="qtopic" id="qTopic"></span>
+        <div class="qtext" id="qText"></div>
+        <div class="opts" id="qOpts"></div>
+        <div class="explain" id="qExplain"></div>
+        <div class="nav-row">
+          <button id="nextBtn" class="btn btn-primary" style="margin-top:0;display:none">Dalej</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result" style="display:none">
+      <div class="result">
+        <div class="ring">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="58" fill="none" stroke="#e3e0d8" stroke-width="11"/>
+            <circle id="ringFill" cx="65" cy="65" r="58" fill="none" stroke="#1f7a6e" stroke-width="11" stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+          </svg>
+          <div class="pct" id="resPct">0%</div>
+        </div>
+        <h2 id="resTitle"></h2>
+        <p class="verdict" id="resVerdict"></p>
+        <div class="nums">
+          <div><b id="resCorrect">0</b>poprawnych</div>
+          <div><b id="resTotal">0</b>pytań</div>
+          <div><b id="resPass">,</b>próg 50%</div>
+        </div>
+        <div class="actions">
+          <button id="retryBtn" class="btn btn-primary" style="margin-top:0">Nowy test</button>
+          <button id="reviewWrongBtn" class="btn btn-ghost">Powtórz błędne</button>
+        </div>
+      </div>
+      <div class="review" id="reviewBox"></div>
+    </div>
+  </section>
+
+  <!-- BANK -->
+  <section id="view-bank" class="view">
+    <div class="bank-tools">
+      <div class="search"><input id="bankSearch" type="text" placeholder="Szukaj w pytaniach, odpowiedziach, wyjaśnieniach..."></div>
+    </div>
+    <div id="bankTopicChips" class="chips" style="margin-bottom:18px"></div>
+    <div class="bank-count" id="bankCount" style="margin-bottom:14px"></div>
+    <div id="bankList"></div>
+  </section>
+
+  <footer>
+    Materiał powtórkowy do nauki własnej. Odpowiedzi zweryfikowane z treścią wykładów.
+  </footer>
+</div>
+
+<script>
+/* ===================== BAZA PYTAŃ =====================
+   correct = indeks poprawnej odpowiedzi w tablicy opts (0..3) */
+const TOPICS = {
+  w1:"Wprowadzenie i reprezentacje",
+  w2:"Widzenie i spostrzeganie",
+  w3:"Uwaga",
+  w4:"Pamięć",
+  w5:"Myślenie"
+};
+
+const QUESTIONS = [
+{"t":"w1","q":"Zdolność człowieka do odbierania informacji z otoczenia i przetwarzania ich w celu skutecznej kontroli własnego działania to:","opts":["Poznanie","Spostrzeganie","Reprezentacja poznawcza","Kontrola poznawcza"],"correct":0,"ex":"Definicja poznania z wykładu wprowadzającego. Spostrzeganie i reprezentacja to elementy procesu, a nie sama zdolność odbioru i przetwarzania informacji."},
+{"t":"w1","q":"Umysłowy odpowiednik obiektów poznawczych realnie istniejących, fikcyjnych lub hipotetycznych to:","opts":["Wrażenie","Reprezentacja poznawcza","Pojęcie matrycowe","Schemat poznawczy"],"correct":1,"ex":"Reprezentacja poznawcza zastępuje obiekt w procesie przetwarzania informacji i może dotyczyć obiektów realnych, fikcyjnych i hipotetycznych."},
+{"t":"w1","q":"Obrazy umysłowe, ślady pamięciowe, słowa, sądy, pojęcia oraz schematy stanowią rodzaj:","opts":["Wrażeń","Spostrzeżeń","Reprezentacji poznawczej","Detektorów cech"],"correct":2,"ex":"To wymienione przez Paivio rodzaje reprezentacji umysłowych."},
+{"t":"w1","q":"Oddawanie w przybliżeniu prawdziwych cech rzeczywistości pozazmysłowej jako wyniku aktywności umysłu i prywatnego obrazu świata odnosi się do:","opts":["Spostrzeżenia","Wrażenia","Schematu","Reprezentacji poznawczej"],"correct":3,"ex":"Powstająca w umyśle reprezentacja oddaje w przybliżeniu cechy rzeczywistości jako wybiórczą, zindywidualizowaną i niekiedy zniekształconą wizję świata."},
+{"t":"w1","q":"Wiedza typu że, odnosząca się do danych i faktów kodowanych w pamięci trwałej, to wiedza:","opts":["Deklaratywna","Proceduralna","Niejawna","Ekspercka"],"correct":0,"ex":"Podział Gilberta Ryle (1949). Wiedza że to wiedza deklaratywna, wiedza jak to wiedza proceduralna."},
+{"t":"w1","q":"Wiedza typu jak, odnosząca się do procedur realizacji czynności umysłowych i ruchowych, to wiedza:","opts":["Deklaratywna","Proceduralna","Jawna","Werbalna"],"correct":1,"ex":"Wiedza proceduralna (umiejętności), trudniejsza do werbalizacji, nabywana przez trening i powtarzanie."},
+{"t":"w1","q":"Cechy takie jak zorganizowanie, proceduralność, hierarchiczność i czerpanie z doświadczeń odnoszą się do wiedzy typu:","opts":["Deklaratywnego","Jawnego","Eksperckiego","Werbalnego"],"correct":2,"ex":"To charakterystyka wiedzy eksperckiej: szeroka, uporządkowana hierarchicznie, proceduralna, zawiera schematy rozwiązywania problemów."},
+{"t":"w1","q":"Etap nabywania wiedzy eksperckiej, w którym osoba ma pełną kontrolę nad procesem nabywania wiedzy i następuje dalsze doskonalenie, to etap:","opts":["Wsparcia zewnętrznego","Przejściowy","Konsolidacji","Samoregulacji"],"correct":3,"ex":"Trzeci etap nabywania wiedzy eksperckiej według wykładu: pełna kontrola i dalsze doskonalenie."},
+{"t":"w1","q":"Poznawcza reprezentacja skończonej liczby cech wspólnych wszystkim desygnatom, przysługujących w jednakowym stopniu wszystkim egzemplarzom pojęcia, to:","opts":["Pojęcie matrycowe","Pojęcie naturalne","Pojęcie konkretne","Schemat"],"correct":0,"ex":"Pojęcia matrycowe (klasyczne, arystotelesowskie), dobrze zdefiniowane, dominują w języku nauki, np. trójkąt."},
+{"t":"w1","q":"Poznawcza reprezentacja skończonej liczby cech, które w różny sposób przysługują poszczególnym desygnatom pojęcia, to:","opts":["Pojęcie matrycowe","Pojęcie naturalne","Pojęcie abstrakcyjne","Reprezentacja"],"correct":1,"ex":"Pojęcia naturalne mają desygnaty bardziej i mniej typowe (np. wróbel kontra kura), dominują w języku potocznym."},
+{"t":"w1","q":"Rekonstruowanie schematu umysłowego polega na:","opts":["Przyroście nowych informacji","Stopniowym dostrajaniu subprocedur","Zmianie relacji łączących poszczególne reprezentacje pojęciowe","Tworzeniu nowego schematu od zera"],"correct":2,"ex":"Wykład rozróżnia trzy tryby: rozwijanie (przyrost informacji), dostrajanie (zmiana subprocedur) i rekonstruowanie (zmiana relacji między reprezentacjami)."},
+{"t":"w1","q":"Schemat może być rozwijany poprzez rejestrację nowych sytuacji bodźcowych, w których jest stosowany. Odbywa się to przez:","opts":["Zmianę relacji między reprezentacjami","Dostrajanie subprocedur","Operację zerową","Przyrost informacji oraz procesy asymilacji i akomodacji"],"correct":3,"ex":"W wykładzie rozwijanie schematu to nabywanie wiedzy przez przyrost informacji oraz procesy asymilacji i akomodacji. Zmiana relacji to rekonstrukcja, a nie rozwijanie."},
+{"t":"w1","q":"Kontrola poznawcza to:","opts":["Zdolność systemu do samoregulacji i samoorganizacji","Mechanizm odbioru wrażeń zmysłowych","Magazyn pamięci trwałej","Proces tworzenia spostrzeżeń"],"correct":0,"ex":"Kontrola poznawcza to zdolność systemu do samoregulacji i samoorganizacji: powstrzymania reakcji i samodzielnego inicjowania działań."},
+{"t":"w1","q":"Cztery podstawowe grupy metod badawczych według Allporta (1996) to:","opts":["Wywiad, ankieta, test, obserwacja","Obserwacja, eksperyment laboratoryjny, badanie kliniczne, symulacja komputerowa","Introspekcja, eksperyment, korelacja, metaanaliza","Neuroobrazowanie, EEG, fMRI, PET"],"correct":1,"ex":"Allport wymienił te cztery grupy. Neuroobrazowanie dodano później wraz z rozwojem technologii."},
+{"t":"w1","q":"Za umowną datę powstania psychologii poznawczej uznaje się rok:","opts":["1949","1967","1956","1972"],"correct":2,"ex":"Rok 1956, pierwsze sympozjum kognitywne na MIT z udziałem Chomsky'ego, Simona i Millera."},
+{"t":"w1","q":"Autorem pierwszego podręcznika psychologii poznawczej (1967) jest:","opts":["George Miller","Donald Broadbent","Noam Chomsky","Ulric Neisser"],"correct":3,"ex":"Ulric Neisser, Cognitive Psychology (1967). Zdefiniował dziedzinę jako zajmującą się nabywaniem, strukturalizowaniem, przechowywaniem i wykorzystywaniem wiedzy."},
+{"t":"w1","q":"Forma trwałej reprezentacji rzeczywistości w postaci uporządkowanej i powiązanej struktury informacji kodowanej długotrwale to:","opts":["Wiedza","Spostrzeżenie","Wrażenie","Uwaga"],"correct":0,"ex":"Definicja wiedzy z wykładu. Kodowana jest w postaci długotrwałej i ma strukturę uporządkowaną."},
+{"t":"w2","q":"Dowolny bodziec z otoczenia oddziałujący na zmysły człowieka, działający z pewnej odległości, to bodziec:","opts":["Proksymalny","Dystalny","Progowy","Sensoryczny"],"correct":1,"ex":"Bodziec dystalny to obiekt w otoczeniu będący źródłem stymulacji zewnętrznej, działający z odległości."},
+{"t":"w2","q":"Obraz na siatkówce powstający w bezpośrednim kontakcie bodźca dystalnego z narządem zmysłu to bodziec:","opts":["Dystalny","Wtórny","Proksymalny","Progowy"],"correct":2,"ex":"Bodziec proksymalny to obraz siatkówkowy: odwrócony, pomniejszony, dwuwymiarowy i zniekształcony."},
+{"t":"w2","q":"Odzwierciedlenie elementarnej cechy zmysłowej zarejestrowanej w wyniku odbioru danych sensorycznych to:","opts":["Spostrzeżenie","Reprezentacja","Bodziec proksymalny","Wrażenie"],"correct":3,"ex":"Wrażenie, według Hebba aktywność dróg wstępujących od narządów zmysłowych. Poszczególne wrażenia są od siebie odizolowane."},
+{"t":"w2","q":"Obraz umysłowy przedmiotu, reprezentacja przedmiotu oraz obraz wszystkich dostępnych cech rejestrowanych przez różne zmysły to:","opts":["Spostrzeżenie","Wrażenie","Reprezentacja","Detektor cech"],"correct":0,"ex":"Spostrzeżenie, według Hebba efekt aktywności pól czuciowych kory łączących informacje z różnych zmysłów w całość."},
+{"t":"w2","q":"Proces tworzenia reprezentacji przedmiotu na podstawie informacji z narządów zmysłów oraz zapisanych w pamięci to:","opts":["Wrażenie","Spostrzeganie","Uwaga","Kodowanie"],"correct":1,"ex":"To definicja spostrzegania: integracja danych zmysłowych i informacji z pamięci."},
+{"t":"w2","q":"Komórki lub zespoły komórek odpowiedzialne za wyodrębnienie specyficznej cechy danego przedmiotu to:","opts":["Fotoreceptory","Komórki zwojowe","Detektory cech","Mapy cech"],"correct":2,"ex":"Detektory cech reagują tylko na jedną cechę (np. linie pionowe, ruch), pozostałe ignorują."},
+{"t":"w2","q":"W procesie spostrzegania ocena semantyczna bodźca i porównanie informacji sensorycznych z kategoriami w pamięci to:","opts":["Faza rejestracji sensorycznej","Faza oceny znaczenia metaforycznego","Faza kodowania emocjonalnego","Faza rozpoznania treści bodźca"],"correct":3,"ex":"Faza rozpoznania treści bodźca odpowiada na pytanie co to jest, przez porównanie z kategoriami w pamięci."},
+{"t":"w2","q":"Dostrzeganie innego sensu odbieranych bodźców, gdy uruchamiane są wyższe procesy poznawcze i wnioskowanie, to faza:","opts":["Oceny znaczenia metaforycznego","Rozpoznania treści bodźca","Rejestracji sensorycznej","Kodowania emocjonalnego"],"correct":0,"ex":"Faza oceny znaczenia metaforycznego jest opcjonalna i odpowiada na pytanie co to dla mnie znaczy, angażując wnioskowanie."},
+{"t":"w2","q":"Wczesna ocena emocjonalnego znaczenia bodźca, za którą odpowiadają wzgórze i ciało migdałowate, to faza:","opts":["Rozpoznania treści bodźca","Kodowania i oceny emocjonalnej","Oceny znaczenia metaforycznego","Rejestracji sensorycznej"],"correct":1,"ex":"Faza kodowania emocjonalnego uruchamia mechanizm uciekaj, walcz lub zamroź, pozwalając na szybką, choć nieprecyzyjną reakcję."},
+{"t":"w2","q":"Odbiór niepełnej informacji uruchamiający procesy pamięciowe i percepcyjne, które aktywują interpretację danych zmysłowych, to proces:","opts":["Bottom-up (wstępujący)","Asocjacyjny","Top-down (zstępujący)","Sensoryczny"],"correct":2,"ex":"Proces zstępujący (top-down) łączy oczekiwania i doświadczenie zakodowane w strukturach poznawczych, zwłaszcza gdy dane zmysłowe są niepełne."},
+{"t":"w2","q":"Przetwarzanie informacji od receptora ku wyższym częściom analizatora, podkreślające integrację prostych elementów bodźca, to proces:","opts":["Top-down","Metaforyczny","Allocentryczny","Bottom-up"],"correct":3,"ex":"Proces wstępujący (bottom-up) opiera się na rozpoznawaniu przez porównanie z wzorcem i nie wyjaśnia wpływu oczekiwań ani kontekstu."},
+{"t":"w2","q":"Koncepcję o prymacie części nad całością i o tym, że wrażenia zawsze są takie same, głosili:","opts":["Atomiści i asocjacjoniści","Strukturaliści (psychologia postaci)","Konstruktywiści","Zwolennicy percepcji bezpośredniej"],"correct":0,"ex":"Atomizm (powiązany z asocjacjonizmem) głosi prymat części nad całością, stałość wrażeń i łączenie ich przez prawa kojarzenia. Głównymi przedstawicielami byli Wundt i Titchener."},
+{"t":"w2","q":"Prymat całości nad częściami oraz wpływ kontekstu na to, jak spostrzegamy rzeczywistość, głosili:","opts":["Atomiści","Strukturaliści (psychologia postaci)","Asocjacjoniści","Empiryści"],"correct":1,"ex":"Strukturalizm (psychologia postaci) zakłada prymat całości, wpływ kontekstu i wyodrębnianie całości na podstawie wrodzonych zasad Wertheimera."},
+{"t":"w2","q":"Prostota kształtu, symetria, prostota orientacji przestrzennej oraz wypukłość względem tła odnoszą się do koncepcji Edgara Rubina o:","opts":["Stałości spostrzeżeń","Prawie bliskości","Figurze i tle","Detekcji niezmienników"],"correct":2,"ex":"Rubin (1921) opisał zasady wyodrębniania figury z tła: figurą jest obszar mniejszy, obwiedziony, prostszy, symetryczny i wypukły."},
+{"t":"w2","q":"Spostrzeganie charakterystycznych cech przedmiotu jako takich samych, mimo że informacja docierająca do oka się zmienia, to:","opts":["Gotowość percepcyjna","Obronność percepcyjna","Iluzja","Stałość spostrzeżeń"],"correct":3,"ex":"Stałość percepcyjna: spostrzeżenie nie ulega zmianom lub ulega mniejszym zmianom niż bodziec proksymalny. Dotyczy kształtu, wielkości, jasności i barwy."},
+{"t":"w2","q":"Gdy spostrzeżenie nie ulega zmianom lub ulega mniejszym zmianom w porównaniu ze zmianami bodźca proksymalnego, mówimy o:","opts":["Stałości spostrzeżeń","Gotowości percepcyjnej","Detekcji niezmienników","Obronności percepcyjnej"],"correct":0,"ex":"To definicja zjawiska stałości spostrzegania, jednego z przejawów praw stałości percepcyjnej."},
+{"t":"w2","q":"Słuchowa pamięć sensoryczna jest określana jako pamięć:","opts":["Ikoniczna","Echoiczna","Operacyjna","Werbalna"],"correct":1,"ex":"Pamięć echoiczna to słuchowa pamięć sensoryczna. Wzrokowa pamięć sensoryczna to pamięć ikoniczna."},
+{"t":"w3","q":"Akt koncentrowania się na konkretnej informacji, umożliwiający pełniejsze jej przetworzenie, to:","opts":["Spostrzeganie","Reprezentacja","Proces uwagowy","Czujność"],"correct":2,"ex":"To definicja uwagi (procesu uwagowego), która umożliwia pełniejsze przetworzenie wybranej informacji."},
+{"t":"w3","q":"W niektórych teoriach przyjmuje się, że integracja spostrzeganych cech w umiejscowiony i identyfikowalny obiekt to zadanie:","opts":["Pamięci","Myślenia","Wyobraźni","Uwagi"],"correct":3,"ex":"To funkcja uwagi (scalanie cech), opisana w teorii integracji cech Anne Treisman. Dopiero uwaga łączy cechy w jeden obiekt."},
+{"t":"w3","q":"Typ uwagi przyciąganej przez bodźce zewnętrzne, kierowanej niezależnie od woli jednostki, to uwaga:","opts":["Mimowolna","Dowolna","Wykonawcza","Ekstensywna"],"correct":0,"ex":"Uwaga mimowolna jest procesem wstępującym, przetwarzaniem automatycznym i egzogennym, wyspecjalizowanym w detekcji ważnych bodźców."},
+{"t":"w3","q":"Mechanizm polegający na zawężaniu obszaru, na którym skupiona jest uwaga, powodujący zmniejszenie ilości przetwarzanych informacji, to:","opts":["Mechanizm czujności","Mechanizm ogniskowania uwagi","Mechanizm scalania cech","Reflektor uwagi"],"correct":1,"ex":"Mechanizm ogniskowania zawęża pole uwagi i zmniejsza ilość przetwarzanych informacji. To jeden z dwóch mechanizmów przydzielania zasobów."},
+{"t":"w3","q":"Gdy cel ma jedną unikalną i elementarną cechę inną niż otaczające go dystraktory, mamy do czynienia z:","opts":["Koniunkcją cech","Hamowaniem powrotu","Zjawiskiem pop-out","Iluzorycznym łączeniem cech"],"correct":2,"ex":"Pop-out: cel wyskakuje, czas wyszukiwania jest krótki i niezależny od liczby dystraktorów."},
+{"t":"w3","q":"Gdy cel ma jedną wspólną cechę z każdym otaczającym go dystraktorem, mamy do czynienia z:","opts":["Pop-out","Selekcją pierwotną","Czujnością","Koniunkcją cech"],"correct":3,"ex":"Koniunkcja: czas wyszukiwania jest dłuższy i rośnie wraz z liczbą dystraktorów, bo wymaga zaangażowania uwagi (etap II teorii Treisman)."},
+{"t":"w3","q":"Teoria wielu filtrów uwagowych, według której informacje z kanału nieśledzonego nie są odrzucane, lecz jedynie osłabiane, to teoria:","opts":["Osłabiacza Treisman","Wczesnej selekcji Broadbenta","Późnej selekcji Deutscha","Obciążenia percepcyjnego Lavie"],"correct":0,"ex":"Teoria osłabiacza Treisman (1964): selekcja zachodzi na wczesnych i późnych etapach, a uświadamiane są tylko informacje przekraczające próg."},
+{"t":"w3","q":"Stan gotowości na wykrycie i reakcję na subtelne zmiany w środowisku, zachodzące przypadkowo w dłuższym czasie, to:","opts":["Mechanizm ogniskowania","Mechanizm czujności uwagowej","Hamowanie powrotu","Scalanie cech"],"correct":1,"ex":"Czujność (przedłużona koncentracja) umożliwia monitorowanie otoczenia w poszukiwaniu celu. Odpowiada za nią głównie prawa półkula."},
+{"t":"w3","q":"Uwaga ekstensywna to typ uwagi:","opts":["O wąskim zakresie","Mimowolnej","O szerokim zakresie","Wykonawczej"],"correct":2,"ex":"Uwaga ekstensywna ma szeroki zakres: przetwarza wiele informacji powierzchownie. Uwaga intensywna ma wąski zakres i przetwarza niewiele informacji głęboko."},
+{"t":"w3","q":"Selekcja informacji na poziomie pamięci, między pamięcią krótkotrwałą a trwałą, wynikająca z ograniczeń pamięci trwałej w szybkości kodowania informacji nowych i semantycznych, to selekcja:","opts":["Pierwotna","III rzędu","Percepcyjna","Wtórna"],"correct":3,"ex":"To dokładna definicja selekcji wtórnej z wykładu. Selekcja pierwotna dotyczy narządów zmysłów, a selekcja III rzędu poziomu pamięci operacyjnej (LTM do operacyjnej)."},
+{"t":"w3","q":"Selekcja informacji odbieranych przez narządy zmysłów, związana z ograniczeniami anatomicznymi i fizjologicznymi, to selekcja:","opts":["Pierwotna","Wtórna","III rzędu","Semantyczna"],"correct":0,"ex":"Selekcja pierwotna zachodzi na poziomie narządów zmysłów i wynika z ograniczeń anatomicznych oraz fizjologicznych."},
+{"t":"w3","q":"Selekcja informacji na poziomie pamięci operacyjnej, pojawiająca się przy tworzeniu planu działania z użyciem wiedzy z pamięci długotrwałej, to selekcja:","opts":["Pierwotna","III rzędu","Wtórna","Sensoryczna"],"correct":1,"ex":"Selekcja III rzędu zachodzi na poziomie pamięci operacyjnej (od LTM do operacyjnej), na późniejszych etapach przetwarzania."},
+{"t":"w3","q":"Autorem teorii wczesnej selekcji, w której uwaga działa jak filtr odrzucający informacje na podstawie cech fizycznych, jest:","opts":["Anne Treisman","Diana Deutsch","Donald Broadbent","Nilli Lavie"],"correct":2,"ex":"Teoria wczesnej selekcji Broadbenta (1957): filtr działa według zasady wszystko albo nic na podstawie parametrów fizycznych bodźca."},
+{"t":"w3","q":"Model hybrydowy, w którym o wczesnej lub późnej selekcji decyduje obciążenie percepcyjne i trudność zadania, zaproponowała:","opts":["Anne Treisman","Diana Deutsch","Donald Broadbent","Nilli Lavie"],"correct":3,"ex":"Model Nilli Lavie (1995): przy zadaniu łatwym selekcja zachodzi późno, przy trudnym (wysokie obciążenie percepcyjne) wcześnie."},
+{"t":"w3","q":"W paradygmacie Posnera wskazówka symboliczna i centralna (np. strzałka) bada uwagę:","opts":["Dowolną","Mimowolną","Wykonawczą","Ekstensywną"],"correct":0,"ex":"Wskazówka symboliczna, centralna, z proporcją 80/20 trafień, bada uwagę dowolną. Wskazówka peryferyjna 50/50 bada uwagę mimowolną."},
+{"t":"w3","q":"W teorii detekcji sygnału reakcja w sytuacji braku bodźca to:","opts":["Prawidłowe trafienie","Fałszywy alarm","Pominięcie","Prawidłowe odrzucenie"],"correct":1,"ex":"Reakcja przy braku bodźca to fałszywy alarm. Brak reakcji przy bodźcu to pominięcie, a reakcja przy bodźcu to prawidłowe trafienie."},
+{"t":"w3","q":"Do funkcji uwagi wykonawczej należy między innymi:","opts":["Rejestracja sensoryczna","Transdukcja światła","Kontrola hamująca i przełączanie między zadaniami","Konsolidacja synaptyczna"],"correct":2,"ex":"Uwaga wykonawcza obejmuje planowanie, przełączanie między zadaniami, kontrolę hamującą i monitorowanie działań."},
+{"t":"w4","q":"Prawo mówiące, że im więcej dany materiał jest powtarzany, tym lepiej jest pamiętany, to prawo:","opts":["Foucault","Specyficzności kodowania","Rekapitulacji","Częstości"],"correct":3,"ex":"Prawo częstości. Prawo Foucault dotyczy tego, że przy obszernym materiale czas na zapamiętanie jednego elementu rośnie szybciej niż jego objętość."},
+{"t":"w4","q":"Magazyn o dużej pojemności, przechowujący informacje o właściwościach fizycznych bez ich znaczenia przez bardzo krótki czas, to pamięć:","opts":["Sensoryczna","Krótkotrwała","Operacyjna","Długotrwała"],"correct":0,"ex":"Pamięć sensoryczna (ultrakrótka) jest bardzo pojemna i przechowuje surowe cechy fizyczne przez kilkadziesiąt do kilkuset milisekund."},
+{"t":"w4","q":"Magazyn o małej pojemności, w którym dłuższe przechowywanie informacji wymaga powtórek, to pamięć:","opts":["Sensoryczna","Krótkotrwała","Długotrwała","Utajona"],"correct":1,"ex":"Pamięć krótkotrwała ma niewielką pojemność i wymaga powtórek wewnętrznych, inaczej informacja przepada."},
+{"t":"w4","q":"Twórcą twierdzenia, że pojemność pamięci krótkotrwałej ogranicza się do 7 plus minus 2 elementów, jest:","opts":["Alan Baddeley","Nelson Cowan","George Miller","George Sperling"],"correct":2,"ex":"George Miller (1956). Późniejsze badania Cowana (2001) sugerują pojemność około 4 elementów."},
+{"t":"w4","q":"System zdolny do zapamiętywania informacji przez krótki czas i manipulowania nimi, służący rozumowaniu i myśleniu, to pamięć:","opts":["Sensoryczna","Utajona","Semantyczna","Operacyjna"],"correct":3,"ex":"Pamięć operacyjna w modelu Baddeleya i Hitcha. Rozszerza koncepcję pamięci krótkotrwałej o manipulowanie informacjami."},
+{"t":"w4","q":"Mechanizm odpowiadający za zarządzanie zawartością podręcznych magazynów pamięci i kontrolujący funkcje wykonawcze to:","opts":["Centralny mechanizm wykonawczy","Pętla fonologiczna","Notes wzrokowo-przestrzenny","Bufor epizodyczny"],"correct":0,"ex":"Centralny mechanizm wykonawczy steruje zasobami uwagi, podejmowaniem decyzji i operacjami umysłowymi w pamięci operacyjnej."},
+{"t":"w4","q":"Centralny mechanizm wykonawczy jest elementem pamięci:","opts":["Sensorycznej","Roboczej (operacyjnej)","Utajonej","Echoicznej"],"correct":1,"ex":"Centralny mechanizm wykonawczy znajduje się w pamięci operacyjnej (roboczej), według modelu Baddeleya i Hitcha."},
+{"t":"w4","q":"Mechanizm służący do chwilowego przechowywania reprezentacji werbalnych, np. kilku słów lub sylab, to:","opts":["Notes wzrokowo-przestrzenny","Bufor epizodyczny","Podręczna pamięć werbalna","Magazyn ikoniczny"],"correct":2,"ex":"Podręczna pamięć werbalna składa się z magazynu fonologicznego (bierny) i pętli fonologicznej (czynny, odświeża zawartość przez bezgłośne powtarzanie)."},
+{"t":"w4","q":"Element pamięci operacyjnej dodany do modelu najpóźniej (Baddeley, 2000), integrujący informacje z różnych źródeł, to:","opts":["Pętla fonologiczna","Notes wzrokowo-przestrzenny","Magazyn fonologiczny","Podręczna pamięć epizodyczna (bufor epizodyczny)"],"correct":3,"ex":"Bufor epizodyczny na krótki czas przechowuje i integruje informacje z pamięci werbalnej, notesu wzrokowo-przestrzennego i epizodycznej pamięci długotrwałej."},
+{"t":"w4","q":"Łączenie różnych cech bodźca lub zdarzenia w zintegrowaną reprezentację pamięciową odnosi się do fazy:","opts":["Kodowania","Przechowywania","Odtwarzania","Rekapitulacji"],"correct":0,"ex":"Kodowanie. Na jego wydajność wpływają między innymi uwaga i głębokość przetwarzania (Craik i Lockhart)."},
+{"t":"w4","q":"Typ pamięci jawnej związany ze świadomym zapamiętywaniem przeszłych zdarzeń i faktów, służący do przechowywania wspomnień, faktów, wydarzeń i wiedzy o świecie, to pamięć:","opts":["Epizodyczna","Deklaratywna","Semantyczna","Proceduralna"],"correct":1,"ex":"Pamięć deklaratywna (jawna) jest kategorią nadrzędną i obejmuje zarówno zdarzenia, jak i fakty oraz wiedzę o świecie. Sama epizodyczna to tylko zdarzenia, a semantyczna to tylko fakty."},
+{"t":"w4","q":"Według podziału Tulvinga (1972) zdolność do świadomego zapamiętywania faktów i znaczeń to pamięć:","opts":["Epizodyczna","Proceduralna","Semantyczna","Utajona"],"correct":2,"ex":"Pamięć semantyczna dotyczy faktów, znaczeń i wiedzy o świecie. Pamięć epizodyczna dotyczy zdarzeń."},
+{"t":"w4","q":"Typ pamięci związany z nieświadomym zapamiętywaniem przeszłych zdarzeń, działający poza świadomością i wpływający na aktualne zachowanie, to pamięć:","opts":["Deklaratywna","Semantyczna","Epizodyczna","Utajona (niedeklaratywna)"],"correct":3,"ex":"Pamięć utajona (niejawna, niedeklaratywna) obejmuje pamięć proceduralną i prymowanie. Nie da się jej świadomie przywołać, ujawnia się w działaniu."},
+{"t":"w4","q":"Pamięć działań i umiejętności, niedostępna świadomie i nabywana przez wiele prób (np. jazda na rowerze), to pamięć:","opts":["Proceduralna","Semantyczna","Epizodyczna","Echoiczna"],"correct":0,"ex":"Pamięć proceduralna należy do pamięci utajonej. Przypadek H.M. pokazał, że mimo amnezji następczej można uczyć się nowych umiejętności."},
+{"t":"w4","q":"W doświadczeniu Sperlinga (1960) wyższa poprawność w raporcie częściowym niż całkowitym dowodzi istnienia:","opts":["Pamięci operacyjnej","Bardzo pojemnej, lecz szybko zanikającej pamięci sensorycznej","Pętli fonologicznej","Pamięci proceduralnej"],"correct":1,"ex":"Raport częściowy dawał około 82% poprawności, bo pamięć ikoniczna jest pojemna, ale informacja znika w ułamku sekundy (po 300 ms poprawność spadła do 25 do 30%)."},
+{"t":"w4","q":"Proces stopniowej stabilizacji śladu pamięciowego, w którym istotną rolę pełni hipokamp i przyśrodkowa część płata skroniowego, to:","opts":["Rekapitulacja","Prymowanie","Konsolidacja","Hamowanie proaktywne"],"correct":2,"ex":"Konsolidacja przebiega dwuetapowo: synaptyczna (minuty do godzin) i systemowa (dni do lat). Hipokamp nie jest magazynem, lecz uczestniczy w formowaniu śladów."},
+{"t":"w4","q":"Zwiększenie efektywności przetwarzania cech percepcyjnych bodźca na skutek wcześniejszej ekspozycji to:","opts":["Hamowanie retroaktywne","Reminiscencja","Konsolidacja systemowa","Prymowanie percepcyjne"],"correct":3,"ex":"Prymowanie percepcyjne należy do pamięci utajonej. Badania Warringtona i Weiskrantza pokazały łatwość uzupełniania sylab mimo utrudnionego jawnego odtwarzania."},
+{"t":"w5","q":"Proces łączenia elementów poznawczej reprezentacji świata (obrazów, pojęć, sądów) w dłuższe ciągi, zastępujący realne zachowanie, to:","opts":["Myślenie","Spostrzeganie","Uwaga","Kodowanie"],"correct":0,"ex":"Definicja myślenia. Utworzony ciąg uwalnia jednostkę od ponoszenia natychmiastowych skutków własnych działań."},
+{"t":"w5","q":"Modele ujmujące myślenie z perspektywy tego, jak ludzie rzeczywiście myślą, ze wszystkimi uprzedzeniami, to modele:","opts":["Normatywne","Deskryptywne","Preskryptywne","Probabilistyczne"],"correct":1,"ex":"Modele deskryptywne (opisowe) interesują psychologię, bo pozwalają przewidywać rzeczywiste decyzje ludzi. Normatywne i preskryptywne mówią, jak ludzie powinni myśleć."},
+{"t":"w5","q":"Logika formalna, statystyczna teoria prawdopodobieństwa i teoria użyteczności są przykładami modeli:","opts":["Deskryptywnych","Opisowych","Normatywnych","Intuicyjnych"],"correct":2,"ex":"To modele normatywne: opisują idealne myślenie ze względu na system norm. Wymagają pełnej informacji i dużych zasobów, więc rzadko stosowane w życiu."},
+{"t":"w5","q":"Myślenie nastawione na osiągnięcie określonego celu to myślenie:","opts":["Autystyczne","Relaksacyjne","Postformalne","Realistyczne"],"correct":3,"ex":"Myślenie realistyczne jest ukierunkowane na cel. Myślenie autystyczne ma charakter relaksacyjny i nie jest nastawione na cel."},
+{"t":"w5","q":"Myślenie, którego wynik jest nowy nie tylko dla jednostki, ale wzbogaca wiedzę nagromadzoną przez pokolenia, to myślenie:","opts":["Twórcze","Reproduktywne","Odtwórcze","Sensoryczno-motoryczne"],"correct":0,"ex":"Myślenie twórcze to pochodna myślenia produktywnego. Jego wynik jest jednocześnie nowy i wartościowy społecznie."},
+{"t":"w5","q":"Myślenie oparte na zasadach dialektyki Hegla, odnoszące się do tez, antytez i ich syntezy, to myślenie:","opts":["Wyobrażeniowo-pojęciowe","Postformalne","Sensoryczno-motoryczne","Krytyczne"],"correct":1,"ex":"Myślenie postformalne opiera się na dialektyce Hegla (teza, antyteza, synteza)."},
+{"t":"w5","q":"Jednoznaczny i niezawodny przepis działania o skończonej sekwencji operacji prowadzących do celu to:","opts":["Heurystyka","Reguła transformacji","Algorytm","Pętla"],"correct":2,"ex":"Algorytm jest niezawodny, dobrze określony i masowy. Heurystyka jest zawodna, nieformalna i uproszczona."},
+{"t":"w5","q":"Zawodna, nieformalna i uproszczona metoda rozwiązania problemu lub podjęcia decyzji to:","opts":["Algorytm","Reguła odwracalności","Synteza","Heurystyka"],"correct":3,"ex":"Według wykładu myślenie jest czynnością heurystyczną, sterowaną przez heurystyki. Heurystyki mogą być ogólne lub szczegółowe."},
+{"t":"w5","q":"Według teorii Kahnemana system szybki, intuicyjny, emocjonalny i automatyczny to:","opts":["System 1","System 2","Myślenie postformalne","Rozumowanie dedukcyjne"],"correct":0,"ex":"System 1 jest szybki i intuicyjny, rozwinął się ewolucyjnie jako pierwszy, to źródło heurystyk. System 2 jest wolniejszy, analityczny i logiczny."},
+{"t":"w5","q":"Błąd polegający na wykorzystaniu punktu odniesienia (kotwicy) przy sporządzaniu szacunków to:","opts":["Heurystyka dostępności","Efekt zakotwiczenia","Błąd konfirmacji","Korelacja pozorna"],"correct":1,"ex":"Efekt zakotwiczenia. W badaniu Kahnemana i Tversky'ego wylosowana liczba (10 lub 60) wpływała na szacunek odsetka krajów afrykańskich w ONZ."},
+{"t":"w5","q":"Tendencja do przeceniania częstości zdarzeń łatwych do przywołania w pamięci (np. katastrof lotniczych) to:","opts":["Efekt zakotwiczenia","Dysonans poznawczy","Heurystyka dostępności","Efekt sformułowania"],"correct":2,"ex":"Heurystyka dostępności prowadzi do zniekształconych ocen ryzyka, bo nagłaśniane zdarzenia wydają się częstsze niż są w rzeczywistości."},
+{"t":"w5","q":"Tendencja do skupiania się na informacjach potwierdzających istniejące przekonanie i ignorowania informacji sprzecznych to:","opts":["Korelacja pozorna","Efekt zakotwiczenia","Dysonans poznawczy","Błąd konfirmacji"],"correct":3,"ex":"Błąd konfirmacji zaburza myślenie logiczne. Przykład: dostrzeganie tylko nieuprzejmych zachowań wykładowcy uznanego za niemiłego."},
+{"t":"w5","q":"Stres psychiczny spowodowany niespójnością między sprzecznymi przekonaniami lub między nowymi informacjami a dotychczasowymi przekonaniami to:","opts":["Dysonans poznawczy","Korelacja pozorna","Efekt zakotwiczenia","Heurystyka dostępności"],"correct":0,"ex":"Dysonans poznawczy redukuje się przez zmianę zachowania albo zmianę przekonania."},
+{"t":"w5","q":"Zależność wyboru od tego, czy problem opisano w kategoriach zysków czy strat (np. 80% chudego mięsa kontra 20% tłuszczu), to:","opts":["Efekt zakotwiczenia","Efekt sformułowania (ramowania)","Korelacja pozorna","Błąd konfirmacji"],"correct":1,"ex":"Efekt sformułowania wynika z teorii perspektywy: stratom przypisujemy większą subiektywną wartość niż równoważnym zyskom."},
+{"t":"w5","q":"Rozumowanie polegające na wyciąganiu wniosków z przesłanek z użyciem formalnych reguł logiki, dające niezawodny wniosek, to rozumowanie:","opts":["Indukcyjne","Heurystyczne","Dedukcyjne","Pozorne"],"correct":2,"ex":"Rozumowanie dedukcyjne daje wniosek niezawodny. Indukcyjne wyprowadza hipotezy na podstawie skończonej liczby przypadków, więc jest zawodne."},
+{"t":"w5","q":"Opisowa teoria podejmowania decyzji w warunkach ryzyka, zakładająca myślenie o użyteczności jako zmianie względem punktu odniesienia, to:","opts":["Teoria użyteczności","Teoria Berlyne'a","Teoria detekcji sygnału","Teoria perspektywy"],"correct":3,"ex":"Teoria perspektywy: problemy ujęte w kategoriach strat skłaniają do podejmowania ryzyka, a ujęte w kategoriach korzyści do jego unikania."}
+];
+
+/* ===================== STAN ===================== */
+let store = {};
+try{ store = JSON.parse(localStorage.getItem("pp_test")||"{}"); }catch(e){ store = {}; }
+function save(){ try{ localStorage.setItem("pp_test", JSON.stringify(store)); }catch(e){} }
+
+const selectedTopics = new Set(Object.keys(TOPICS));
+let testLen = 20;
+let session = null;
+
+/* ===================== HELPERS ===================== */
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function topicLabel(t){ return TOPICS[t]; }
+function countByTopic(t){ return QUESTIONS.filter(q=>q.t===t).length; }
+
+/* ===================== SETUP UI ===================== */
+const topicChips = document.getElementById("topicChips");
+Object.keys(TOPICS).forEach(t=>{
+  const c=document.createElement("div");
+  c.className="chip on";
+  c.innerHTML=topicLabel(t)+' <span class="cnt">'+countByTopic(t)+'</span>';
+  c.onclick=()=>{
+    if(selectedTopics.has(t)){ selectedTopics.delete(t); c.classList.remove("on"); }
+    else { selectedTopics.add(t); c.classList.add("on"); }
+    refreshSetup();
+  };
+  topicChips.appendChild(c);
+});
+
+const lenChips=document.getElementById("lenChips");
+[10,20,30,"Wszystkie"].forEach(n=>{
+  const c=document.createElement("div");
+  c.className="chip"+((n===20)?" on":"");
+  c.textContent=n;
+  c.dataset.len=n;
+  c.onclick=()=>{
+    [...lenChips.children].forEach(x=>x.classList.remove("on"));
+    c.classList.add("on");
+    testLen=(n==="Wszystkie")?9999:n;
+    refreshSetup();
+  };
+  lenChips.appendChild(c);
+});
+
+function poolSize(){ return QUESTIONS.filter(q=>selectedTopics.has(q.t)).length; }
+function refreshSetup(){
+  const pool=poolSize();
+  const startBtn=document.getElementById("startBtn");
+  startBtn.disabled = pool===0;
+  const eff = Math.min(testLen, pool);
+  startBtn.textContent = pool===0 ? "Wybierz zakres materiału" : "Rozpocznij test ("+eff+" pyt.)";
+  const best=document.getElementById("bestLine");
+  if(store.best){
+    best.innerHTML="Najlepszy wynik: <b>"+store.best.pct+"%</b> ("+store.best.correct+"/"+store.best.total+")";
+  } else best.textContent="";
+}
+refreshSetup();
+
+/* ===================== TABS ===================== */
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("view-"+tab.dataset.view).classList.add("active");
+    if(tab.dataset.view==="bank") renderBank();
+  };
+});
+
+/* ===================== TEST FLOW ===================== */
+document.getElementById("startBtn").onclick=startTest;
+document.getElementById("nextBtn").onclick=nextQuestion;
+document.getElementById("retryBtn").onclick=()=>{ showSetup(); };
+document.getElementById("reviewWrongBtn").onclick=reviewWrong;
+
+function showSetup(){
+  document.getElementById("setup").style.display="block";
+  document.getElementById("quiz").style.display="none";
+  document.getElementById("result").style.display="none";
+  refreshSetup();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function buildSession(questionList){
+  const instant=document.getElementById("instantFb").checked;
+  const shuf=document.getElementById("shuffleOpts").checked;
+  // Rozłożenie poprawnych odpowiedzi równo na A/B/C/D w obrębie całego testu,
+  // w losowej kolejności, żeby żadna litera nie dominowała.
+  let targets=[];
+  if(shuf){
+    for(let i=0;i<questionList.length;i++) targets.push(i%4);
+    targets=shuffle(targets);
+  }
+  return {
+    instant, shuf,
+    items: questionList.map((q,i)=>{
+      let order;
+      if(shuf){
+        const target=targets[i];
+        const others=shuffle([0,1,2,3].filter(x=>x!==q.correct));
+        order=[]; let oi=0;
+        for(let p=0;p<4;p++){ order[p]=(p===target)?q.correct:others[oi++]; }
+      } else {
+        order=[0,1,2,3];
+      }
+      return { q, order, picked:null, correctPos:order.indexOf(q.correct) };
+    }),
+    idx:0, correct:0, answered:0
+  };
+}
+
+function startTest(){
+  const pool=shuffle(QUESTIONS.filter(q=>selectedTopics.has(q.t)));
+  const chosen=pool.slice(0, Math.min(testLen, pool.length));
+  session=buildSession(chosen);
+  document.getElementById("setup").style.display="none";
+  document.getElementById("result").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  renderQuestion();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+const KEYS=["A","B","C","D"];
+function renderQuestion(){
+  const it=session.items[session.idx];
+  document.getElementById("qTopic").textContent=topicLabel(it.q.t);
+  document.getElementById("qText").textContent=it.q.q;
+  document.getElementById("qCount").textContent="Pytanie "+(session.idx+1)+" / "+session.items.length;
+  document.getElementById("scoreLive").textContent=session.answered? (session.correct+"/"+session.answered+" trafień"):"";
+  document.getElementById("progFill").style.width=((session.idx)/session.items.length*100)+"%";
+
+  const optsBox=document.getElementById("qOpts");
+  optsBox.innerHTML="";
+  const explain=document.getElementById("qExplain");
+  explain.className="explain";
+  document.getElementById("nextBtn").style.display="none";
+
+  it.order.forEach((origIdx,pos)=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    b.innerHTML='<span class="key">'+KEYS[pos]+'</span><span>'+it.q.opts[origIdx]+'</span>';
+    b.onclick=()=>pick(pos,b);
+    optsBox.appendChild(b);
+  });
+
+  if(it.picked!==null) lockAnswered(it);
+}
+
+function pick(pos,btn){
+  const it=session.items[session.idx];
+  if(it.picked!==null) return;
+  it.picked=pos;
+  session.answered++;
+  const isCorrect=(pos===it.correctPos);
+  if(isCorrect) session.correct++;
+  lockAnswered(it);
+}
+
+function lockAnswered(it){
+  const buttons=[...document.getElementById("qOpts").children];
+  buttons.forEach((b,pos)=>{
+    b.disabled=true;
+    if(pos===it.correctPos) b.classList.add("correct");
+    else if(pos===it.picked) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  document.getElementById("scoreLive").textContent=session.correct+"/"+session.answered+" trafień";
+  const explain=document.getElementById("qExplain");
+  if(session.instant){
+    const right=it.q.opts[it.q.correct];
+    explain.innerHTML="<b>"+(it.picked===it.correctPos?"Dobrze. ":"Poprawna odpowiedź: "+right+". ")+"</b>"+it.q.ex;
+    explain.className="explain show";
+  }
+  document.getElementById("nextBtn").style.display="inline-block";
+  document.getElementById("nextBtn").textContent=(session.idx===session.items.length-1)?"Zakończ":"Dalej";
+}
+
+function nextQuestion(){
+  if(session.idx<session.items.length-1){
+    session.idx++;
+    renderQuestion();
+    document.querySelector(".qcard").scrollIntoView({behavior:"smooth",block:"start"});
+  } else finishTest();
+}
+
+function finishTest(){
+  document.getElementById("quiz").style.display="none";
+  document.getElementById("result").style.display="block";
+  const total=session.items.length, correct=session.correct;
+  const pct=Math.round(correct/total*100);
+
+  const circ=2*Math.PI*58;
+  const ring=document.getElementById("ringFill");
+  ring.style.strokeDashoffset=circ*(1-pct/100);
+  ring.style.stroke = pct>=50 ? "#1f7a6e" : "#b23a3a";
+  document.getElementById("resPct").textContent=pct+"%";
+  document.getElementById("resCorrect").textContent=correct;
+  document.getElementById("resTotal").textContent=total;
+  document.getElementById("resPass").textContent = pct>=50 ? "zdane" : "brak";
+
+  let title,verdict;
+  if(pct===100){title="Komplet";verdict="Wszystkie odpowiedzi poprawne.";}
+  else if(pct>=85){title="Bardzo dobrze";verdict="Materiał opanowany, drobne luki do dopięcia.";}
+  else if(pct>=70){title="Dobrze";verdict="Solidnie, warto powtórzyć błędne pytania.";}
+  else if(pct>=50){title="Zaliczone";verdict="Powyżej progu 50%, ale jest co poprawiać.";}
+  else {title="Poniżej progu";verdict="Wynik poniżej 50%. Przejrzyj wyjaśnienia i powtórz.";}
+  document.getElementById("resTitle").textContent=title;
+  document.getElementById("resVerdict").textContent=verdict;
+
+  if(!store.best || pct>store.best.pct){ store.best={pct,correct,total}; save(); }
+
+  buildReview();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function buildReview(){
+  const box=document.getElementById("reviewBox");
+  const wrong=session.items.filter(it=>it.picked!==it.correctPos);
+  if(wrong.length===0){ box.innerHTML=""; return; }
+  let html='<h3>Pytania do powtórki ('+wrong.length+')</h3>';
+  wrong.forEach(it=>{
+    const yourTxt = it.picked===null ? "brak odpowiedzi" : it.q.opts[it.order[it.picked]];
+    html+='<div class="rev-item"><div class="rq">'+it.q.q+'</div>'+
+      '<span class="ra no">Twoja odpowiedź: '+yourTxt+'</span>'+
+      '<span class="ra ok">Poprawna: '+it.q.opts[it.q.correct]+'</span>'+
+      '<div class="rex">'+it.q.ex+'</div></div>';
+  });
+  box.innerHTML=html;
+}
+
+function reviewWrong(){
+  const wrong=session.items.filter(it=>it.picked!==it.correctPos).map(it=>it.q);
+  if(wrong.length===0){ showSetup(); return; }
+  session=buildSession(shuffle(wrong));
+  document.getElementById("result").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  renderQuestion();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ===================== BANK ===================== */
+const bankSelected=new Set(Object.keys(TOPICS));
+const bankTopicChips=document.getElementById("bankTopicChips");
+const allChip=document.createElement("div");
+function buildBankChips(){
+  bankTopicChips.innerHTML="";
+  Object.keys(TOPICS).forEach(t=>{
+    const c=document.createElement("div");
+    c.className="chip"+(bankSelected.has(t)?" on":"");
+    c.innerHTML=topicLabel(t)+' <span class="cnt">'+countByTopic(t)+'</span>';
+    c.onclick=()=>{
+      if(bankSelected.has(t)){bankSelected.delete(t);c.classList.remove("on");}
+      else{bankSelected.add(t);c.classList.add("on");}
+      renderBank();
+    };
+    bankTopicChips.appendChild(c);
+  });
+}
+buildBankChips();
+document.getElementById("bankSearch").addEventListener("input",renderBank);
+
+function renderBank(){
+  const term=document.getElementById("bankSearch").value.trim().toLowerCase();
+  const list=document.getElementById("bankList");
+  let items=QUESTIONS.filter(q=>bankSelected.has(q.t));
+  if(term){
+    items=items.filter(q=>{
+      const blob=(q.q+" "+q.opts.join(" ")+" "+q.ex).toLowerCase();
+      return blob.includes(term);
+    });
+  }
+  document.getElementById("bankCount").textContent=items.length+" "+(items.length===1?"pytanie":"pytań");
+  if(items.length===0){ list.innerHTML='<div class="empty">Brak pytań dla wybranych filtrów.</div>'; return; }
+  let html="";
+  items.forEach((q,i)=>{
+    html+='<div class="bcard"><span class="qtopic">'+topicLabel(q.t)+'</span>'+
+      '<div class="bq">'+(i+1)+'. '+q.q+'</div>';
+    q.opts.forEach((o,oi)=>{
+      const ok=oi===q.correct;
+      html+='<div class="bopt'+(ok?" ans":"")+'"><span class="bk">'+KEYS[oi]+'</span><span>'+o+(ok?"  \u2713":"")+'</span></div>';
+    });
+    html+='<div class="bex"><b>Dlaczego: </b>'+q.ex+'</div></div>';
+  });
+  list.innerHTML=html;
+}
+</script>
+</body>
+</html>
