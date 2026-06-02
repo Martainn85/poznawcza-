@@ -50,6 +50,13 @@ h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:34px;line-heig
 .tab.active{background:var(--ink);color:#fff}
 .tab:not(.active):hover{color:var(--ink)}
 
+.sync-bar{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+.sync-bar .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.sync-bar.ok .dot{background:var(--good)}
+.sync-bar.syncing .dot{background:var(--amber)}
+.sync-bar.err .dot{background:var(--bad)}
+.sync-bar button{background:none;border:0;color:var(--teal);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;margin-left:4px}
+
 .subj-switch{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
 .subj-btn{font-family:"Fraunces",Georgia,serif;font-size:15px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--muted);padding:9px 18px;border-radius:999px;cursor:pointer;transition:.16s}
 .subj-btn:hover{border-color:var(--teal);color:var(--ink)}
@@ -155,6 +162,42 @@ h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:34px;line-heig
 footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px;text-align:center}
 .empty{text-align:center;color:var(--muted);padding:50px 0;font-size:15px}
 
+/* learn */
+.stat-row{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px}
+.stat{flex:1;min-width:120px;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font-family:"Fraunces",serif;font-size:26px;font-weight:600;line-height:1}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat.due b{color:var(--amber)}
+.stat.learning b{color:var(--teal)}
+.stat.mastered b{color:var(--good)}
+.stat.fresh b{color:var(--ink-soft)}
+.learn-reset{margin-top:20px;font-size:12.5px;color:var(--muted)}
+.learn-reset button{background:none;border:0;color:var(--bad);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+
+.flash-bar{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.flash-bar .qcount{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.flash-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow)}
+.box-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-left:8px}
+.box-dots{display:inline-flex;gap:3px}
+.box-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:inline-block}
+.box-dots i.fill{background:var(--teal)}
+.flash-q{font-family:"Fraunces",Georgia,serif;font-size:22px;line-height:1.35;font-weight:500;margin:14px 0 22px}
+.reveal-btn{width:100%;justify-content:center;display:flex}
+.flash-answer{display:none}
+.flash-answer.show{display:block;animation:fade .3s ease}
+.flash-opts{display:flex;flex-direction:column;gap:9px;margin-bottom:4px}
+.flash-opt{display:flex;gap:13px;align-items:flex-start;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:13px 16px;font-size:15.5px;color:var(--ink-soft)}
+.flash-opt.correct{border-color:var(--good);background:var(--good-soft);color:var(--ink)}
+.flash-opt .key{flex:none;width:26px;height:26px;border-radius:7px;background:var(--line);color:var(--muted);font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:1px}
+.flash-opt.correct .key{background:var(--good);color:#fff}
+.grade-row{display:flex;gap:12px;margin-top:22px}
+.grade-row .btn{flex:1;margin-top:0}
+.btn-again{background:var(--bad-soft);color:var(--bad);border:1px solid #eccac6}
+.btn-again:hover{background:#f3d9d5}
+.btn-know{background:var(--good);color:#fff}
+.btn-know:hover{background:#1a6936}
+.next-due{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+
 @media(max-width:560px){
   h1{font-size:27px}
   .qtext{font-size:18.5px}
@@ -174,8 +217,11 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);f
 
   <div class="tabs">
     <button class="tab active" data-view="test">Test ABCD</button>
+    <button class="tab" data-view="learn">Nauka</button>
     <button class="tab" data-view="bank">Baza pytań</button>
   </div>
+
+  <div id="syncBar" class="sync-bar" style="display:none"><span class="dot"></span><span id="syncText"></span><button id="syncNowBtn">Odśwież</button></div>
 
   <!-- TEST SETUP -->
   <section id="view-test" class="view active">
@@ -246,6 +292,64 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);f
     </div>
   </section>
 
+  <!-- LEARN -->
+  <section id="view-learn" class="view">
+    <div id="learnSetup" class="panel">
+      <h2>Tryb nauki (fiszki)</h2>
+      <p class="hint">Próbujesz przypomnieć sobie odpowiedź, odsłaniasz ją i oceniasz, czy umiesz. Pytania, które oznaczysz jako trudne, wracają w tej samej sesji i częściej w kolejnych dniach (powtórki z odstępami).</p>
+
+      <div class="stat-row" id="learnStats"></div>
+
+      <div class="field-label">Zakres materiału</div>
+      <div id="learnTopicChips" class="chips"></div>
+
+      <div class="field-label">Co powtarzać</div>
+      <div id="learnModeChips" class="len-row"></div>
+
+      <div class="field-label">Liczba kart</div>
+      <div id="learnLenChips" class="len-row"></div>
+
+      <button id="learnStartBtn" class="btn btn-primary">Rozpocznij naukę</button>
+      <div class="learn-reset" id="learnReset"></div>
+    </div>
+
+    <div id="flash" style="display:none">
+      <div class="flash-bar">
+        <div class="progress"><span id="flashFill"></span></div>
+        <div class="qcount" id="flashCount"></div>
+      </div>
+      <div class="flash-card">
+        <span class="qtopic" id="flashTopic"></span><span class="box-tag" id="flashBox"></span>
+        <div class="flash-q" id="flashQ"></div>
+        <button id="revealBtn" class="btn btn-primary reveal-btn">Pokaż odpowiedź</button>
+        <div class="flash-answer" id="flashAnswer">
+          <div class="flash-opts" id="flashOpts"></div>
+          <div class="explain show" id="flashEx"></div>
+          <div class="grade-row">
+            <button id="againBtn" class="btn btn-again">Powtórz</button>
+            <button id="knowBtn" class="btn btn-know">Umiem</button>
+          </div>
+          <div class="next-due" id="flashNextDue"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="learnDone" style="display:none">
+      <div class="result">
+        <h2>Sesja zakończona</h2>
+        <p class="verdict" id="learnDoneVerdict"></p>
+        <div class="nums">
+          <div><b id="learnDoneSeen">0</b>przejrzanych</div>
+          <div><b id="learnDoneKnow">0</b>umiesz</div>
+          <div><b id="learnDoneAgain">0</b>do powtórki</div>
+        </div>
+        <div class="actions">
+          <button id="learnAgainBtn" class="btn btn-primary" style="margin-top:0">Nowa sesja</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- BANK -->
   <section id="view-bank" class="view">
     <div class="bank-tools">
@@ -262,6 +366,22 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);f
 </div>
 
 <script>
+/* ============================================================
+   SYNCHRONIZACJA POSTĘPU (opcjonalna)
+   ------------------------------------------------------------
+   Aby postęp nauki i wyniki testów przenosiły się między
+   urządzeniami, wpisz poniżej adres projektu Supabase i klucz
+   publishable. Możesz użyć DOKŁADNIE tego samego projektu i klucza
+   co w aplikacji z przepisami: wtedy tabela już istnieje i nic
+   więcej nie musisz robić w bazie.
+   Jeśli zostawisz key pusty, strona działa normalnie, tylko lokalnie.
+   ============================================================ */
+var CLOUD = {
+  url: "https://zxuzpvujmwzroxvysabl.supabase.co",
+  key: "sb_publishable_jSaWrG6PiFAK8JoFyTTw-g_6lerupxG"   // klucz publishable (ten sam co w przepisach)
+};
+var CLOUD_ROW = "quiz_progress";   // osobny wiersz, nie koliduje z przepisami
+
 /* ===================== BAZA PYTAŃ =====================
    correct = indeks poprawnej odpowiedzi w tablicy opts (0..3) */
 const SUBJECTS = {
@@ -665,7 +785,8 @@ const QUESTIONS = [
 /* ===================== STAN ===================== */
 let store = {};
 try{ store = JSON.parse(localStorage.getItem("pp_test")||"{}"); }catch(e){ store = {}; }
-function save(){ try{ localStorage.setItem("pp_test", JSON.stringify(store)); }catch(e){} }
+let cloudOn = !!(CLOUD.url && CLOUD.key);
+function save(){ try{ localStorage.setItem("pp_test", JSON.stringify(store)); }catch(e){} if(cloudOn) scheduleSyncPush(); }
 
 const selectedTopics = new Set(Object.keys(TOPICS));
 let testLen = 20;
@@ -734,6 +855,7 @@ document.querySelectorAll(".tab").forEach(tab=>{
     tab.classList.add("active");
     document.getElementById("view-"+tab.dataset.view).classList.add("active");
     if(tab.dataset.view==="bank") renderBank();
+    if(tab.dataset.view==="learn") showLearnSetup();
   };
 });
 
@@ -954,6 +1076,276 @@ function renderBank(){
   });
   list.innerHTML=html;
 }
+/* ===================== LEARN (FISZKI + POWTÓRKI Z ODSTĘPAMI) ===================== */
+/* Model Leitnera: każde pytanie ma pudełko 0..5 i termin następnej powtórki (due).
+   Po "Umiem" pudełko rośnie i termin oddala się; po "Powtórz" pudełko spada i karta wraca. */
+const LEARN_DAYS=[0,1,3,7,16,35];           // odstęp w dniach dla pudełka 0..5
+const DAY=86400000;
+function qKey(q){ let h=5381; const str=q.s+"|"+q.q; for(let i=0;i<str.length;i++){ h=((h*33)+str.charCodeAt(i))|0; } return "k"+(h>>>0).toString(36); }
+function learnRec(q){ if(!store.learn) store.learn={}; return store.learn[qKey(q)]||null; }
+function isDue(q){ const r=learnRec(q); return !r || Date.now()>=r.due; }
+function nextInterval(box){ return LEARN_DAYS[Math.min(box,LEARN_DAYS.length-1)]*DAY; }
+function gradeCard(q,known){
+  if(!store.learn) store.learn={};
+  const k=qKey(q); const r=store.learn[k]||{box:0,due:0,seen:0};
+  r.box = known ? Math.min(r.box+1,5) : Math.max(r.box-1,0);
+  r.due = Date.now()+nextInterval(r.box);
+  r.seen=(r.seen||0)+1;
+  store.learn[k]=r; save();
+  return r;
+}
+function dueLabel(ms){
+  const d=Math.round((ms-Date.now())/DAY);
+  if(d<=0) return "dziś";
+  if(d===1) return "jutro";
+  return "za "+d+" dni";
+}
+
+let learnMode="due";   // "due" = zaplanowane, "all" = cały zakres
+let learnLen=20;
+const learnSelected=new Set(Object.keys(TOPICS));
+let flashDeck=[], flashPos=0, flashInitial=0, flashStats={seen:0,know:0,again:0};
+
+const learnTopicChips=document.getElementById("learnTopicChips");
+function buildLearnChips(){
+  learnTopicChips.innerHTML="";
+  learnSelected.clear();
+  Object.keys(TOPICS).forEach(t=>{
+    learnSelected.add(t);
+    const c=document.createElement("div");
+    c.className="chip on";
+    c.innerHTML=topicLabel(t)+' <span class="cnt">'+countByTopic(t)+'</span>';
+    c.onclick=()=>{
+      if(learnSelected.has(t)){ learnSelected.delete(t); c.classList.remove("on"); }
+      else { learnSelected.add(t); c.classList.add("on"); }
+      refreshLearnSetup();
+    };
+    learnTopicChips.appendChild(c);
+  });
+}
+
+const learnModeChips=document.getElementById("learnModeChips");
+[["due","Zaplanowane na dziś"],["all","Cały zakres"]].forEach(([val,lab],i)=>{
+  const c=document.createElement("div");
+  c.className="chip"+(i===0?" on":"");
+  c.textContent=lab; c.dataset.mode=val;
+  c.onclick=()=>{ [...learnModeChips.children].forEach(x=>x.classList.remove("on")); c.classList.add("on"); learnMode=val; refreshLearnSetup(); };
+  learnModeChips.appendChild(c);
+});
+
+const learnLenChips=document.getElementById("learnLenChips");
+[10,20,30,"Wszystkie"].forEach(n=>{
+  const c=document.createElement("div");
+  c.className="chip"+((n===20)?" on":"");
+  c.textContent=n; c.dataset.len=n;
+  c.onclick=()=>{ [...learnLenChips.children].forEach(x=>x.classList.remove("on")); c.classList.add("on"); learnLen=(n==="Wszystkie")?9999:n; refreshLearnSetup(); };
+  learnLenChips.appendChild(c);
+});
+
+function learnPool(){ return QUESTIONS.filter(q=>q.s===currentSubject&&learnSelected.has(q.t)); }
+function refreshLearnSetup(){
+  const pool=learnPool();
+  let fresh=0,learning=0,mastered=0,due=0;
+  pool.forEach(q=>{
+    const r=learnRec(q);
+    if(!r) fresh++;
+    else if(r.box>=5) mastered++;
+    else learning++;
+    if(isDue(q)) due++;
+  });
+  document.getElementById("learnStats").innerHTML=
+    '<div class="stat due"><b>'+due+'</b><span>na dziś</span></div>'+
+    '<div class="stat fresh"><b>'+fresh+'</b><span>nowe</span></div>'+
+    '<div class="stat learning"><b>'+learning+'</b><span>w nauce</span></div>'+
+    '<div class="stat mastered"><b>'+mastered+'</b><span>opanowane</span></div>';
+
+  const avail = learnMode==="due" ? due : pool.length;
+  const eff=Math.min(learnLen,avail);
+  const btn=document.getElementById("learnStartBtn");
+  btn.disabled = avail===0;
+  btn.textContent = avail===0
+    ? (learnMode==="due" ? "Brak kart na dziś, wybierz cały zakres" : "Wybierz zakres materiału")
+    : "Rozpocznij naukę ("+eff+" kart)";
+
+  const anyProgress=pool.some(q=>learnRec(q));
+  document.getElementById("learnReset").innerHTML = anyProgress
+    ? 'Postęp nauki zapisany w tej przeglądarce. <button id="resetLearnBtn">Wyczyść postęp</button>'
+    : '';
+  const rb=document.getElementById("resetLearnBtn");
+  if(rb) rb.onclick=()=>{
+    if(confirm("Wyczyścić cały postęp nauki dla wszystkich przedmiotów? Tego nie da się cofnąć.")){
+      store.learn={}; save(); refreshLearnSetup();
+    }
+  };
+}
+
+function showLearnSetup(){
+  document.getElementById("learnSetup").style.display="block";
+  document.getElementById("flash").style.display="none";
+  document.getElementById("learnDone").style.display="none";
+  refreshLearnSetup();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.getElementById("learnStartBtn").onclick=startLearn;
+document.getElementById("revealBtn").onclick=revealFlash;
+document.getElementById("knowBtn").onclick=()=>gradeFlash(true);
+document.getElementById("againBtn").onclick=()=>gradeFlash(false);
+document.getElementById("learnAgainBtn").onclick=showLearnSetup;
+
+function startLearn(){
+  let pool=learnPool();
+  if(learnMode==="due") pool=pool.filter(isDue);
+  pool=shuffle(pool).slice(0,Math.min(learnLen,pool.length));
+  if(pool.length===0){ refreshLearnSetup(); return; }
+  flashDeck=pool.slice();
+  flashPos=0;
+  flashInitial=pool.length;
+  flashStats={seen:0,know:0,again:0};
+  document.getElementById("learnSetup").style.display="none";
+  document.getElementById("learnDone").style.display="none";
+  document.getElementById("flash").style.display="block";
+  renderFlash();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderFlash(){
+  if(flashPos>=flashDeck.length){ finishLearn(); return; }
+  const q=flashDeck[flashPos];
+  const r=learnRec(q); const box=r?r.box:0;
+  document.getElementById("flashTopic").textContent=topicLabel(q.t);
+  let dots=""; for(let i=0;i<5;i++) dots+='<i class="'+(i<box?"fill":"")+'"></i>';
+  document.getElementById("flashBox").innerHTML='<span class="box-dots">'+dots+'</span>';
+  document.getElementById("flashQ").textContent=q.q;
+  document.getElementById("flashCount").textContent="Zostało "+(flashDeck.length-flashPos);
+  document.getElementById("flashFill").style.width=(flashStats.know/flashInitial*100)+"%";
+  document.getElementById("revealBtn").style.display="flex";
+  const ans=document.getElementById("flashAnswer");
+  ans.className="flash-answer";
+}
+
+function revealFlash(){
+  const q=flashDeck[flashPos];
+  const optsBox=document.getElementById("flashOpts");
+  optsBox.innerHTML="";
+  q.opts.forEach((o,oi)=>{
+    const ok=oi===q.correct;
+    const d=document.createElement("div");
+    d.className="flash-opt"+(ok?" correct":"");
+    d.innerHTML='<span class="key">'+KEYS[oi]+'</span><span>'+o+(ok?"  \u2713":"")+'</span>';
+    optsBox.appendChild(d);
+  });
+  document.getElementById("flashEx").innerHTML="<b>Dlaczego: </b>"+q.ex;
+  document.getElementById("revealBtn").style.display="none";
+  document.getElementById("flashAnswer").className="flash-answer show";
+  const r=learnRec(q); const box=r?r.box:0;
+  document.getElementById("flashNextDue").textContent=
+    "Jeśli umiesz, wróci "+dueLabel(Date.now()+nextInterval(Math.min(box+1,5)))+".";
+}
+
+function gradeFlash(known){
+  const q=flashDeck[flashPos];
+  gradeCard(q,known);
+  flashStats.seen++;
+  if(known) flashStats.know++;
+  else { flashStats.again++; flashDeck.push(q); } // trudne wraca na koniec tej sesji
+  flashPos++;
+  renderFlash();
+  if(flashPos<flashDeck.length) document.querySelector(".flash-card").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function finishLearn(){
+  document.getElementById("flash").style.display="none";
+  document.getElementById("learnDone").style.display="block";
+  document.getElementById("learnDoneSeen").textContent=flashStats.seen;
+  document.getElementById("learnDoneKnow").textContent=flashStats.know;
+  document.getElementById("learnDoneAgain").textContent=flashStats.again;
+  let v;
+  if(flashStats.again===0) v="Wszystkie karty oznaczone jako opanowane. Świetna sesja.";
+  else if(flashStats.know>=flashStats.again) v="Solidnie. Trudniejsze karty wrócą wcześniej w kolejnych dniach.";
+  else v="Sporo kart do powtórki. Wróć do nich jutro, utrwalą się szybciej.";
+  document.getElementById("learnDoneVerdict").textContent=v;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+buildLearnChips();
+
+/* ===================== SYNCHRONIZACJA (SUPABASE) ===================== */
+let syncTimer=null;
+function cloudBase(){ return CLOUD.url.replace(/\/+$/,""); }
+function cloudHeaders(){ return {"apikey":CLOUD.key,"Authorization":"Bearer "+CLOUD.key,"Content-Type":"application/json"}; }
+function setSync(state){
+  const bar=document.getElementById("syncBar"); if(!bar) return;
+  bar.className="sync-bar "+(["ok","syncing","err"].includes(state)?state:"");
+  document.getElementById("syncText").textContent =
+    state==="ok"?"Zsynchronizowano":state==="syncing"?"Synchronizacja...":state==="err"?"Błąd synchronizacji":"Tylko lokalnie";
+}
+/* Scalanie odporne na nadpisanie: postęp jest przyrostowy, więc bierzemy
+   "dalszy" stan każdej karty zamiast nadpisywać całość ostatnim zapisem. */
+function mergeStore(remote){
+  if(!remote||typeof remote!=="object") return false;
+  let changed=false;
+  if(remote.best){
+    if(!store.best) store.best={};
+    Object.keys(remote.best).forEach(s=>{
+      const rb=remote.best[s], lb=store.best[s];
+      if(!lb || rb.pct>lb.pct){ store.best[s]=rb; changed=true; }
+    });
+  }
+  if(remote.learn){
+    if(!store.learn) store.learn={};
+    Object.keys(remote.learn).forEach(k=>{
+      const rr=remote.learn[k], lr=store.learn[k];
+      const rSeen=rr.seen||0, lSeen=lr?lr.seen||0:-1;
+      if(!lr || rSeen>lSeen || (rSeen===lSeen && (rr.due||0)>(lr.due||0))){ store.learn[k]=rr; changed=true; }
+    });
+  }
+  return changed;
+}
+function refreshAfterSync(){
+  refreshSetup();
+  refreshLearnSetup();
+  const bankView=document.getElementById("view-bank");
+  if(bankView && bankView.classList.contains("active")) renderBank();
+}
+async function pushCloud(){
+  if(!cloudOn) return;
+  setSync("syncing");
+  try{
+    const res=await fetch(cloudBase()+"/rest/v1/app_data?on_conflict=id",{
+      method:"POST",
+      headers:Object.assign(cloudHeaders(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+      body:JSON.stringify([{id:CLOUD_ROW,data:store,updated_at:new Date().toISOString()}])
+    });
+    setSync(res.ok?"ok":"err");
+  }catch(e){ setSync("err"); }
+}
+async function pullCloud(){
+  if(!cloudOn) return;
+  setSync("syncing");
+  try{
+    const res=await fetch(cloudBase()+"/rest/v1/app_data?id=eq."+CLOUD_ROW+"&select=data,updated_at",{headers:cloudHeaders()});
+    if(!res.ok){ setSync("err"); return; }
+    const rows=await res.json();
+    if(rows && rows.length && rows[0].data){
+      const changed=mergeStore(rows[0].data);
+      try{ localStorage.setItem("pp_test",JSON.stringify(store)); }catch(e){}
+      refreshAfterSync();
+      if(changed) pushCloud(); else setSync("ok");
+    } else {
+      pushCloud();   // pierwszy zapis: chmura jest pusta, wysyłamy stan lokalny
+    }
+  }catch(e){ setSync("err"); }
+}
+function scheduleSyncPush(){ if(!cloudOn) return; setSync("syncing"); clearTimeout(syncTimer); syncTimer=setTimeout(pushCloud,800); }
+
+if(cloudOn){
+  document.getElementById("syncBar").style.display="flex";
+  document.getElementById("syncNowBtn").onclick=()=>pullCloud();
+  pullCloud();
+  window.addEventListener("focus",()=>pullCloud());
+}
+
 /* ===================== SUBJECT SWITCH ===================== */
 const subjSwitch=document.getElementById("subjSwitch");
 function buildSubjectSwitch(){
@@ -976,8 +1368,10 @@ function switchSubject(s){
   buildSubjectSwitch();
   rebuildTopicChips();
   buildBankChips();
+  buildLearnChips();
   showSetup();
   renderBank();
+  showLearnSetup();
 }
 buildSubjectSwitch();
 </script>
