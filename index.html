@@ -57,6 +57,21 @@ h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:34px;line-heig
 .sync-bar.err .dot{background:var(--bad)}
 .sync-bar button{background:none;border:0;color:var(--teal);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;margin-left:4px}
 
+.profile-bar{display:flex;align-items:center;gap:6px;margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+.profile-bar b{color:var(--ink);font-family:"Fraunces",serif}
+.profile-bar button{background:none;border:0;color:var(--teal);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;margin-left:4px}
+
+.overlay{position:fixed;inset:0;background:rgba(21,35,63,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.overlay-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(21,35,63,.3);max-width:440px;width:100%}
+.overlay-card h2{font-family:"Fraunces",serif;font-size:23px;font-weight:600;margin-bottom:6px}
+.overlay-card .hint{color:var(--muted);font-size:14px;margin-bottom:20px}
+.profile-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.profile-pick{text-align:left;font-family:"Fraunces",serif;font-size:16px;font-weight:500;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:13px 16px;cursor:pointer;transition:.14s}
+.profile-pick:hover{border-color:var(--teal);background:#fff}
+.new-profile{display:flex;gap:10px}
+.new-profile input{flex:1;font-family:inherit;font-size:14.5px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.new-profile input:focus{outline:none;border-color:var(--teal)}
+
 .subj-switch{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
 .subj-btn{font-family:"Fraunces",Georgia,serif;font-size:15px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--muted);padding:9px 18px;border-radius:999px;cursor:pointer;transition:.16s}
 .subj-btn:hover{border-color:var(--teal);color:var(--ink)}
@@ -207,6 +222,17 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);f
 </style>
 </head>
 <body>
+<div id="profileOverlay" class="overlay">
+  <div class="overlay-card">
+    <h2>Kto się uczy?</h2>
+    <p class="hint" id="profileHint">Wybierz swój profil albo dodaj nowy. Każdy ma własny postęp, baza pytań jest wspólna.</p>
+    <div id="profileList" class="profile-list"></div>
+    <div class="new-profile">
+      <input id="newProfileInput" type="text" placeholder="Imię nowego profilu" maxlength="24">
+      <button id="addProfileBtn" class="btn btn-primary" style="margin-top:0">Dodaj</button>
+    </div>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <div class="eyebrow">Test egzaminacyjny ABCD</div>
@@ -221,6 +247,7 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);f
     <button class="tab" data-view="bank">Baza pytań</button>
   </div>
 
+  <div id="profileBar" class="profile-bar" style="display:none">Uczy się: <b id="profileName"></b><button id="switchProfileBtn">zmień</button></div>
   <div id="syncBar" class="sync-bar" style="display:none"><span class="dot"></span><span id="syncText"></span><button id="syncNowBtn">Odśwież</button></div>
 
   <!-- TEST SETUP -->
@@ -380,7 +407,8 @@ var CLOUD = {
   url: "https://zxuzpvujmwzroxvysabl.supabase.co",
   key: "sb_publishable_jSaWrG6PiFAK8JoFyTTw-g_6lerupxG"   // klucz publishable (ten sam co w przepisach)
 };
-var CLOUD_ROW = "quiz_progress";   // osobny wiersz, nie koliduje z przepisami
+/* Każdy profil ma własny wiersz quiz_<profil>. Lista profili w wierszu quiz_profiles.
+   Baza pytań jest wspólna, postęp nauki jest osobny dla każdej osoby. */
 
 /* ===================== BAZA PYTAŃ =====================
    correct = indeks poprawnej odpowiedzi w tablicy opts (0..3) */
@@ -784,9 +812,15 @@ const QUESTIONS = [
 
 /* ===================== STAN ===================== */
 let store = {};
-try{ store = JSON.parse(localStorage.getItem("pp_test")||"{}"); }catch(e){ store = {}; }
 let cloudOn = !!(CLOUD.url && CLOUD.key);
-function save(){ try{ localStorage.setItem("pp_test", JSON.stringify(store)); }catch(e){} if(cloudOn) scheduleSyncPush(); }
+let profiles = [];          // [{slug,name}]
+let currentProfile = null;  // slug aktywnego profilu
+function rowId(){ return "quiz_"+currentProfile; }
+function save(){
+  if(!currentProfile){ try{ localStorage.setItem("pp_test", JSON.stringify(store)); }catch(e){} return; }
+  try{ localStorage.setItem("pp_data_"+currentProfile, JSON.stringify(store)); }catch(e){}
+  if(cloudOn) scheduleSyncPush();
+}
 
 const selectedTopics = new Set(Object.keys(TOPICS));
 let testLen = 20;
@@ -1309,31 +1343,31 @@ function refreshAfterSync(){
   if(bankView && bankView.classList.contains("active")) renderBank();
 }
 async function pushCloud(){
-  if(!cloudOn) return;
+  if(!cloudOn || !currentProfile) return;
   setSync("syncing");
   try{
     const res=await fetch(cloudBase()+"/rest/v1/app_data?on_conflict=id",{
       method:"POST",
       headers:Object.assign(cloudHeaders(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
-      body:JSON.stringify([{id:CLOUD_ROW,data:store,updated_at:new Date().toISOString()}])
+      body:JSON.stringify([{id:rowId(),data:store,updated_at:new Date().toISOString()}])
     });
     setSync(res.ok?"ok":"err");
   }catch(e){ setSync("err"); }
 }
 async function pullCloud(){
-  if(!cloudOn) return;
+  if(!cloudOn || !currentProfile) return;
   setSync("syncing");
   try{
-    const res=await fetch(cloudBase()+"/rest/v1/app_data?id=eq."+CLOUD_ROW+"&select=data,updated_at",{headers:cloudHeaders()});
+    const res=await fetch(cloudBase()+"/rest/v1/app_data?id=eq."+rowId()+"&select=data,updated_at",{headers:cloudHeaders()});
     if(!res.ok){ setSync("err"); return; }
     const rows=await res.json();
     if(rows && rows.length && rows[0].data){
       const changed=mergeStore(rows[0].data);
-      try{ localStorage.setItem("pp_test",JSON.stringify(store)); }catch(e){}
+      try{ localStorage.setItem("pp_data_"+currentProfile,JSON.stringify(store)); }catch(e){}
       refreshAfterSync();
       if(changed) pushCloud(); else setSync("ok");
     } else {
-      pushCloud();   // pierwszy zapis: chmura jest pusta, wysyłamy stan lokalny
+      pushCloud();   // pierwszy zapis dla tego profilu
     }
   }catch(e){ setSync("err"); }
 }
@@ -1342,8 +1376,107 @@ function scheduleSyncPush(){ if(!cloudOn) return; setSync("syncing"); clearTimeo
 if(cloudOn){
   document.getElementById("syncBar").style.display="flex";
   document.getElementById("syncNowBtn").onclick=()=>pullCloud();
-  pullCloud();
   window.addEventListener("focus",()=>pullCloud());
+}
+
+/* ===================== PROFILE (RÓŻNE OSOBY) ===================== */
+function slugify(s){
+  return (s||"").toLowerCase()
+    .replace(/ą/g,"a").replace(/ć/g,"c").replace(/ę/g,"e").replace(/ł/g,"l")
+    .replace(/ń/g,"n").replace(/ó/g,"o").replace(/ś/g,"s").replace(/[źż]/g,"z")
+    .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+}
+function loadProfiles(){ try{ return JSON.parse(localStorage.getItem("pp_profiles")||"[]"); }catch(e){ return []; } }
+function saveProfiles(){ try{ localStorage.setItem("pp_profiles",JSON.stringify(profiles)); }catch(e){} if(cloudOn) pushProfiles(); }
+async function pushProfiles(){
+  if(!cloudOn) return;
+  try{ await fetch(cloudBase()+"/rest/v1/app_data?on_conflict=id",{
+    method:"POST",
+    headers:Object.assign(cloudHeaders(),{"Prefer":"resolution=merge-duplicates,return=minimal"}),
+    body:JSON.stringify([{id:"quiz_profiles",data:{profiles},updated_at:new Date().toISOString()}])
+  }); }catch(e){}
+}
+async function pullProfiles(){
+  if(!cloudOn) return;
+  try{
+    const res=await fetch(cloudBase()+"/rest/v1/app_data?id=eq.quiz_profiles&select=data",{headers:cloudHeaders()});
+    if(!res.ok) return;
+    const rows=await res.json();
+    if(rows && rows.length && rows[0].data && Array.isArray(rows[0].data.profiles)){
+      let changed=false;
+      rows[0].data.profiles.forEach(rp=>{ if(rp.slug && !profiles.some(p=>p.slug===rp.slug)){ profiles.push(rp); changed=true; } });
+      if(changed) try{ localStorage.setItem("pp_profiles",JSON.stringify(profiles)); }catch(e){}
+    }
+  }catch(e){}
+}
+
+const profileOverlay=document.getElementById("profileOverlay");
+function renderProfilePicker(){
+  const list=document.getElementById("profileList");
+  list.innerHTML="";
+  profiles.forEach(p=>{
+    const b=document.createElement("button");
+    b.className="profile-pick";
+    b.textContent=p.name;
+    b.onclick=()=>selectProfile(p.slug);
+    list.appendChild(b);
+  });
+  const legacy=localStorage.getItem("pp_test");
+  document.getElementById("profileHint").textContent =
+    (profiles.length===0 && legacy && !localStorage.getItem("pp_migrated"))
+      ? "Wpisz imię i dodaj profil. Twój dotychczasowy postęp zostanie przypisany do pierwszego utworzonego profilu."
+      : "Wybierz swój profil albo dodaj nowy. Każdy ma własny postęp, baza pytań jest wspólna.";
+}
+function showProfilePicker(){ renderProfilePicker(); profileOverlay.style.display="flex"; }
+function hideProfilePicker(){ profileOverlay.style.display="none"; }
+function updateProfileLabel(){
+  const cur=profiles.find(p=>p.slug===currentProfile);
+  if(cur){ document.getElementById("profileName").textContent=cur.name; document.getElementById("profileBar").style.display="flex"; }
+}
+function selectProfile(slug){
+  currentProfile=slug;
+  try{ localStorage.setItem("pp_current",slug); }catch(e){}
+  let raw=localStorage.getItem("pp_data_"+slug);
+  if(raw===null){
+    const legacy=localStorage.getItem("pp_test");
+    if(legacy && !localStorage.getItem("pp_migrated")){ raw=legacy; try{ localStorage.setItem("pp_migrated","1"); }catch(e){} }
+  }
+  try{ store=JSON.parse(raw||"{}"); }catch(e){ store={}; }
+  if(!store.learn) store.learn={};
+  try{ localStorage.setItem("pp_data_"+slug, JSON.stringify(store)); }catch(e){}
+  hideProfilePicker();
+  updateProfileLabel();
+  rebuildTopicChips(); buildBankChips(); buildLearnChips();
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelector('.tab[data-view="test"]').classList.add("active");
+  document.getElementById("view-test").classList.add("active");
+  showSetup(); renderBank(); showLearnSetup();
+  if(cloudOn) pullCloud();
+}
+function addProfile(name){
+  name=(name||"").trim();
+  if(!name) return;
+  let slug=slugify(name)||"profil", base=slug, i=2;
+  while(profiles.some(p=>p.slug===slug)){ slug=base+"_"+i; i++; }
+  profiles.push({slug,name});
+  saveProfiles();
+  selectProfile(slug);
+}
+document.getElementById("addProfileBtn").onclick=()=>{
+  const inp=document.getElementById("newProfileInput");
+  addProfile(inp.value); inp.value="";
+};
+document.getElementById("newProfileInput").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("addProfileBtn").click(); });
+document.getElementById("switchProfileBtn").onclick=showProfilePicker;
+
+async function profileInit(){
+  profiles=loadProfiles();
+  if(cloudOn){ await pullProfiles(); }
+  renderProfilePicker();
+  const saved=localStorage.getItem("pp_current");
+  if(saved && profiles.some(p=>p.slug===saved)) selectProfile(saved);
+  else showProfilePicker();
 }
 
 /* ===================== SUBJECT SWITCH ===================== */
@@ -1374,6 +1507,7 @@ function switchSubject(s){
   showLearnSetup();
 }
 buildSubjectSwitch();
+profileInit();
 </script>
 </body>
 </html>
